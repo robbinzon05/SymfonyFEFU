@@ -9,19 +9,20 @@ services:
       - .:/var/www/html
     depends_on:
       - db
+    restart: unless-stopped
 
   nginx:
-    image: nginx:alpine
+    build: ./docker/nginx
     ports:
       - "${HTTP_PORT}:80"
     volumes:
       - .:/var/www/html
-      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - php
+    restart: unless-stopped
 
   db:
-    image: postgres:16
+    build: ./docker/db
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -30,6 +31,7 @@ services:
       - "${POSTGRES_PORT}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
 
 volumes:
   pgdata:
