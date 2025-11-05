@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\services\ServicesCSV;
+use Carbon\Carbon;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -12,92 +15,124 @@ final class CabinController extends AbstractController
 {
     private ServicesCSV $csv;
 
-    public function __construct()
+    public function __construct(ServicesCSV $csv)
     {
-        $this->csv = new ServicesCSV(\dirname(__DIR__, 2));
+        $this->csv = $csv;
     }
 
     #[Route('/cabins', name: 'cabins_list', methods: ['GET'])]
-    public function list(Request $req): JsonResponse
+    public function list(Request $request): JsonResponse
     {
-        $amenities = array_filter(array_map('trim', explode(',', (string)$req->query->get('amenities', ''))));
-        $beds      = $req->query->getInt('beds', 0);
-        $row       = $req->query->getInt('row', 0);
+        $amenitiesCsv = (string) $request->query->get('amenities', '');
+        $requiredAmenities = array_filter(array_map('trim', explode(',', $amenitiesCsv)));
 
-        $cabins = array_filter($this->csv->loadCabins(), function (array $c) use ($amenities, $beds, $row) {
-            if ((int)$c['is_free'] !== 1) return false;
+        $minBeds = $request->query->getInt('beds', 0);
+        $seasideRow = $request->query->getInt('row', 0);
 
-            if ($beds > 0 && (int)$c['beds'] < $beds) return false;
-            if ($row  > 0 && (int)$c['row']  !== $row) return false;
+        $cabins = $this->csv->loadCabins();
+        $result = [];
 
-            if ($amenities) {
-                $has = array_filter(array_map('trim', explode(',', (string)$c['amenities'])));
-                foreach ($amenities as $a) {
-                    if (!in_array($a, $has, true)) return false;
+        foreach ($cabins as $cabin) {
+            if ((int) $cabin['is_free'] !== 1) {
+                continue;
+            }
+            if ($minBeds > 0 && (int) $cabin['beds'] < $minBeds) {
+                continue;
+            }
+            if ($seasideRow > 0 && (int) $cabin['row'] !== $seasideRow) {
+                continue;
+            }
+
+            if ($requiredAmenities) {
+                $cabinAmenities = array_filter(array_map('trim', explode(',', (string) $cabin['amenities'])));
+                $ok = true;
+                foreach ($requiredAmenities as $a) {
+                    if (!in_array($a, $cabinAmenities, true)) {
+                        $ok = false;
+                        break;
+                    }
+                }
+                if (!$ok) {
+                    continue;
                 }
             }
-            return true;
-        });
 
-        return $this->json(array_values($cabins));
+            $result[] = $cabin;
+        }
+
+        return $this->json(array_values($result));
     }
 
     #[Route('/bookings', name: 'booking_create', methods: ['POST'])]
-    public function create(Request $req): JsonResponse
+    public function create(Request $request): JsonResponse
     {
-        $data = json_decode($req->getContent(), true) ?? [];
-        $phone = (string)($data['phone'] ?? '');
-        $cabinId = (int)($data['cabin_id'] ?? 0);
-        $comment = (string)($data['comment'] ?? '');
+        $data    = json_decode($request->getContent(), true) ?? [];
+        $phone   = (string) ($data['phone'] ?? '');
+        $cabinId = (int) ($data['cabin_id'] ?? 0);
+        $comment = (string) ($data['comment'] ?? '');
 
-        if (!$phone || !$cabinId) {
+        if ($phone === '' || $cabinId === 0) {
             return $this->json(['error' => 'phone and cabin_id are required'], 400);
         }
 
         $cabins = $this->csv->loadCabins();
-        $idx = null;
-        foreach ($cabins as $i => $c) {
-            if ((int)$c['id'] === $cabinId) { $idx = $i; break; }
-        }
-        if ($idx === null)  return $this->json(['error' => 'Cabin not found'], 404);
-        if ((int)$cabins[$idx]['is_free'] !== 1) return $this->json(['error' => 'Cabin already booked'], 409);
+        $foundIndex = null;
 
-        $bookings = $this->csv->loadBookings();
-        $id = $this->csv->nextId($bookings);
-        $bookings[] = [
-            'id'         => $id,
-            'phone'      => $phone,
-            'cabin_id'   => $cabinId,
-            'comment'    => $comment,
-            'created_at' => (new \DateTimeImmutable())->format('c'),
-        ];
-        $this->csv->saveBookings($bookings);
-
-        $cabins[$idx]['is_free'] = 0;
-        $this->csv->saveCabins($cabins);
-
-        return $this->json(['status' => 'ok', 'booking_id' => $id], 201);
-    }
-
-    #[Route('/bookings/{id<\d+>}', name: 'booking_update', methods: ['PUT'])]
-    public function update(int $id, Request $req): JsonResponse
-    {
-        $data = json_decode($req->getContent(), true) ?? [];
-        if (!array_key_exists('comment', $data)) {
-            return $this->json(['error' => 'comment is required'], 400);
-        }
-        $comment = (string)$data['comment'];
-
-        $bookings = $this->csv->loadBookings();
-        $found = false;
-        foreach ($bookings as &$b) {
-            if ((int)$b['id'] === $id) {
-                $b['comment'] = $comment;
-                $found = true;
+        foreach ($cabins as $i => $cabin) {
+            if ((int) $cabin['id'] === $cabinId) {
+                $foundIndex = $i;
                 break;
             }
         }
-        if (!$found) return $this->json(['error' => 'Booking not found'], 404);
+
+        if ($foundIndex === null) {
+            return $this->json(['error' => 'Cabin not found'], 404);
+        }
+        if ((int) $cabins[$foundIndex]['is_free'] !== 1) {
+            return $this->json(['error' => 'Cabin already booked'], 409);
+        }
+
+        $bookings = $this->csv->loadBookings();
+        $newId = $this->csv->nextId($bookings);
+        $bookings[] = [
+            'id'         => $newId,
+            'phone'      => $phone,
+            'cabin_id'   => $cabinId,
+            'comment'    => $comment,
+            'created_at' => Carbon::now()->toIso8601String(),
+        ];
+        $this->csv->saveBookings($bookings);
+
+        $cabins[$foundIndex]['is_free'] = 0;
+        $this->csv->saveCabins($cabins);
+
+        return $this->json(['status' => 'ok', 'booking_id' => $newId], 201);
+    }
+
+    #[Route('/bookings/{id<\d+>}', name: 'booking_update', methods: ['PUT'])]
+    public function update(int $id, Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true) ?? [];
+        if (!array_key_exists('comment', $data)) {
+            return $this->json(['error' => 'comment is required'], 400);
+        }
+        $newComment = (string) $data['comment'];
+
+        $bookings = $this->csv->loadBookings();
+        $updated = false;
+
+        foreach ($bookings as &$booking) {
+            if ((int) $booking['id'] === $id) {
+                $booking['comment'] = $newComment;
+                $updated = true;
+                break;
+            }
+        }
+        unset($booking);
+
+        if (!$updated) {
+            return $this->json(['error' => 'Booking not found'], 404);
+        }
 
         $this->csv->saveBookings($bookings);
         return $this->json(['status' => 'ok']);
