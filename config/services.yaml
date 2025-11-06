@@ -12,7 +12,3 @@ services:
       - '../src/DependencyInjection/'
       - '../src/Entity/'
       - '../src/Kernel.php'
-
-  App\services\ServicesCSV:
-    arguments:
-      $rootDir: '%kernel.project_dir%'
