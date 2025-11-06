@@ -23,10 +23,8 @@
 
   db:
     build: ./docker/db
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    env_file:
+      - .env.docker.local
     ports:
       - "${POSTGRES_PORT}:5432"
     volumes:

@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, main, lab*, feature/* ]
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: app
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: 123456789Q
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd="pg_isready -U app -d app"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      APP_ENV: test
+      DATABASE_URL: "postgresql://app:123456789Q@127.0.0.1:5432/app?serverVersion=16&charset=utf8"
+      MESSENGER_TRANSPORT_DSN: "sync://"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, intl, pdo_pgsql
+          coverage: none
+
+      - name: Install composer deps
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Wait for Postgres
+        run: |
+          for i in {1..30}; do
+            pg_isready -h 127.0.0.1 -p 5432 -U app && break
+            sleep 1
+          done
+
+      - name: Run migrations
+        run: |
+          php bin/console doctrine:database:create --if-not-exists --env=test
+          php bin/console doctrine:migrations:migrate -n --env=test
+
+      - name: Run PHPUnit
+        run: ./vendor/bin/phpunit --testsuite default
