@@ -9,9 +9,9 @@ use App\Entity\Cabin;
 use App\Entity\User;
 use App\Repository\BookingRepository;
 use App\Repository\CabinRepository;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
-use RuntimeException;
+use DomainException;
+use InvalidArgumentException;
 
 final class BookingService
 {
@@ -19,36 +19,74 @@ final class BookingService
         private readonly EntityManagerInterface $em,
         private readonly CabinRepository $cabins,
         private readonly BookingRepository $bookings,
-    ) {
+    ) {}
+
+    /**
+     * @return Cabin[]
+     */
+    public function listFreeCabins(array $requiredAmenities, int $minBeds, int $row): array
+    {
+        $qb = $this->cabins->createQueryBuilder('c')
+            ->andWhere('c.isFree = :free')
+            ->setParameter('free', true);
+
+        if ($minBeds > 0) {
+            $qb->andWhere('c.beds >= :beds')->setParameter('beds', $minBeds);
+        }
+
+        if ($row > 0) {
+            $qb->andWhere('c.row = :row')->setParameter('row', $row);
+        }
+
+        $cabins = $qb->getQuery()->getResult();
+
+        if (!$requiredAmenities) {
+            return $cabins;
+        }
+
+        return array_values(array_filter(
+            $cabins,
+            fn (Cabin $c) => empty(array_diff($requiredAmenities, $c->getAmenities()))
+        ));
     }
 
-    public function create(User $user, int $cabinId, ?string $comment = null): Booking
+    public function create(User $user, int $cabinId, string $comment): Booking
     {
-        /** @var Cabin|null $cabin */
         $cabin = $this->cabins->find($cabinId);
+
         if (!$cabin) {
-            throw new RuntimeException('Cabin not found');
+            throw new InvalidArgumentException('Cabin not found');
         }
 
-        if (method_exists($cabin, 'isFree') ? !$cabin->isFree() : (int)$cabin->getIsFree() !== 1) {
-            throw new RuntimeException('Cabin already booked');
+        if (!$cabin->isFree()) {
+            throw new DomainException('Cabin already booked');
         }
 
-        $booking = new Booking();
-        $booking->setOwner($user);
-        $booking->setCabin($cabin);
-        $booking->setComment($comment ?? '');
-        $booking->setCreatedAt(new DateTimeImmutable());
+        $booking = (new Booking())
+            ->setOwner($user)
+            ->setCabin($cabin)
+            ->setComment($comment)
+            ->setCreatedAt(new \DateTimeImmutable());
 
-        if (method_exists($cabin, 'setIsFree')) {
-            $cabin->setIsFree(false);
-        } else {
-            $cabin->setIsFree(0);
-        }
+        $cabin->setIsFree(false);
 
         $this->em->persist($booking);
         $this->em->flush();
 
         return $booking;
+    }
+
+    public function updateComment(int $bookingId, string $comment): bool
+    {
+        $booking = $this->bookings->find($bookingId);
+
+        if (!$booking) {
+            return false;
+        }
+
+        $booking->setComment($comment);
+        $this->em->flush();
+
+        return true;
     }
 }

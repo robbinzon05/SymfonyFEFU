@@ -29,7 +29,7 @@ final class BookingServiceTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Cabin not found');
 
-        $service->create(new User(), 999);
+        $service->create(new User(), 999, 'test comment');
     }
 
     public function testCreateSuccess(): void
@@ -42,7 +42,7 @@ final class BookingServiceTest extends TestCase
         if (method_exists($cabin, 'setIsFree')) {
             $cabin->setIsFree(true);
         } else {
-            $cabin->setIsFree(1);
+            $cabin->setIsFree(true);
         }
 
         $cabins->method('find')->willReturn($cabin);

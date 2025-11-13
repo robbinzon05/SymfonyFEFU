@@ -13,15 +13,20 @@ final class BookingApiTest extends WebTestCase
     private function createFreeCabin(EntityManagerInterface $em): int
     {
         $cabin = new Cabin();
-        if (method_exists($cabin, 'setIsFree')) {
-            $cabin->setIsFree(true);
-        } else {
-            $cabin->setIsFree(1);
-        }
+        $cabin->setBeds(2);
+        $cabin->setRow(1);
+        $cabin->setAmenities([]);
+        $cabin->setIsFree(true);
+
         $em->persist($cabin);
         $em->flush();
 
-        return $cabin->getId();
+        $id = $cabin->getId();
+        if ($id === null) {
+            throw new \RuntimeException('Cabin ID was not generated');
+        }
+
+        return $id;
     }
 
     public function testCreateBookingCreatesUserIfNotExistsAndMarksCabinBusy(): void
