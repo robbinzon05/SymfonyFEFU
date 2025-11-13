@@ -9,6 +9,7 @@ use App\Entity\Cabin;
 use App\Entity\User;
 use App\Repository\BookingRepository;
 use App\Repository\CabinRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use DomainException;
 use InvalidArgumentException;
@@ -19,7 +20,8 @@ final class BookingService
         private readonly EntityManagerInterface $em,
         private readonly CabinRepository $cabins,
         private readonly BookingRepository $bookings,
-    ) {}
+    ) {
+    }
 
     /**
      * @return Cabin[]
@@ -66,7 +68,7 @@ final class BookingService
             ->setOwner($user)
             ->setCabin($cabin)
             ->setComment($comment)
-            ->setCreatedAt(new \DateTimeImmutable());
+            ->setCreatedAt(new DateTimeImmutable());
 
         $cabin->setIsFree(false);
 

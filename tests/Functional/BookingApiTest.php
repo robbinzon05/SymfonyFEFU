@@ -6,6 +6,7 @@ namespace App\Tests\Functional;
 
 use App\Entity\Cabin;
 use Doctrine\ORM\EntityManagerInterface;
+use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class BookingApiTest extends WebTestCase
@@ -23,7 +24,7 @@ final class BookingApiTest extends WebTestCase
 
         $id = $cabin->getId();
         if ($id === null) {
-            throw new \RuntimeException('Cabin ID was not generated');
+            throw new RuntimeException('Cabin ID was not generated');
         }
 
         return $id;
