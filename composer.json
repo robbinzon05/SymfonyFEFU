@@ -86,6 +86,17 @@
         ],
         "post-update-cmd": [
             "@auto-scripts"
+        ],
+        "test": "phpunit",
+        "lint:phpcs": "phpcs",
+        "lint:cs-fixer": "php-cs-fixer fix --diff --dry-run",
+        "lint:psalm": "psalm",
+
+        "ci": [
+        "@lint:phpcs",
+        "@lint:cs-fixer",
+        "@lint:psalm",
+        "@test"
         ]
     },
     "conflict": {
@@ -98,12 +109,15 @@
         }
     },
     "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.89",
         "phpunit/phpunit": "^12.4",
+        "squizlabs/php_codesniffer": "^4.0",
         "symfony/browser-kit": "7.3.*",
         "symfony/css-selector": "7.3.*",
         "symfony/debug-bundle": "7.3.*",
         "symfony/maker-bundle": "^1.64",
         "symfony/stopwatch": "7.3.*",
-        "symfony/web-profiler-bundle": "7.3.*"
+        "symfony/web-profiler-bundle": "7.3.*",
+        "vimeo/psalm": "^6.13"
     }
 }

@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<psalm
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="vendor/vimeo/psalm/config.xsd"
+    errorLevel="4"
+    cacheDirectory="var/cache/.psalm-cache"
+    ignoreInternalFunctionFalseReturn="false"
+    ignoreInternalFunctionNullReturn="false"
+    ensureArrayIntOffsetsExist="true"
+    ensureArrayStringOffsetsExist="true"
+    strictBinaryOperands="true"
+    findUnusedCode="false"
+    findUnusedVariablesAndParams="false"
+>
+    <projectFiles>
+        <directory name="src" />
+        <directory name="tests" />
+        <ignoreFiles>
+            <file name="config/preload.php" />
+            <file name="public/index.php" />
+            <directory name="bin" />
+            <directory name="var" />
+            <directory name="vendor" />
+        </ignoreFiles>
+    </projectFiles>
+    <issueHandlers>
+        <UnusedClass errorLevel="info" />
+        <PossiblyUnusedMethod errorLevel="info" />
+        <PossiblyUnusedParam errorLevel="info" />
+        <UnusedProperty errorLevel="info" />
+    </issueHandlers>
+</psalm>

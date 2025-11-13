@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Unit;
 
 use App\Entity\Booking;
@@ -10,6 +12,7 @@ use App\Repository\CabinRepository;
 use App\Service\BookingService;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 final class BookingServiceTest extends TestCase
 {
@@ -23,10 +26,10 @@ final class BookingServiceTest extends TestCase
 
         $service = new BookingService($em, $cabins, $bookings);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Cabin not found');
 
-        $service->create(new User(), 999);
+        $service->create(new User(), 999, 'test comment');
     }
 
     public function testCreateSuccess(): void
@@ -39,7 +42,7 @@ final class BookingServiceTest extends TestCase
         if (method_exists($cabin, 'setIsFree')) {
             $cabin->setIsFree(true);
         } else {
-            $cabin->setIsFree(1);
+            $cabin->setIsFree(true);
         }
 
         $cabins->method('find')->willReturn($cabin);
