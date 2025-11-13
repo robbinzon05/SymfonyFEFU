@@ -15,7 +15,8 @@ final class CabinController extends AbstractController
 {
     public function __construct(
         private readonly BookingService $bookingService,
-    ) {}
+    ) {
+    }
 
     #[Route('/cabins', name: 'cabins_list', methods: ['GET'])]
     public function list(Request $request): JsonResponse

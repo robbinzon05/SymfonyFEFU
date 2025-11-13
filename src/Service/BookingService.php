@@ -15,7 +15,8 @@ final class BookingService
         private readonly EntityManagerInterface $em,
         private readonly CabinRepository $cabins,
         private readonly BookingRepository $bookings,
-    ) {}
+    ) {
+    }
 
     public function create(User $user, int $cabinId, ?string $comment = null): Booking
     {

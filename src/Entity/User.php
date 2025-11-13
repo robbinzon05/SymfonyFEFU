@@ -85,8 +85,8 @@ class User
             $this->createdAt = new \DateTimeImmutable();
         }
     }
-    
-    
+
+
     /**
      * @return Collection<int, Booking>
      */
