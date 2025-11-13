@@ -27,12 +27,12 @@ final class CabinController extends AbstractController
 
         $cabins = $this->bookingService->listFreeCabins($requiredAmenities, $minBeds, $row);
 
-        return $this->json(array_map(static fn($c) => [
-            'id'        => $c->getId(),
-            'beds'      => $c->getBeds(),
-            'row'       => $c->getRow(),
-            'amenities' => $c->getAmenities(),
-            'is_free'   => $c->isFree(),
+        return $this->json(array_map(static fn($cabin) => [
+            'id'        => $cabin->getId(),
+            'beds'      => $cabin->getBeds(),
+            'row'       => $cabin->getRow(),
+            'amenities' => $cabin->getAmenities(),
+            'is_free'   => $cabin->isFree(),
         ], $cabins));
     }
 
@@ -45,15 +45,15 @@ final class CabinController extends AbstractController
         $comment = (string)($data['comment'] ?? '');
 
         if ($phone === '' || $cabinId === 0) {
-            return $this->json(['error' => 'phone and cabin_id are required'], 400);
+            throw new HttpException(400, 'phone and cabin_id are required');
         }
 
         try {
             $booking = $this->bookingService->createBooking($phone, $cabinId, $comment);
         } catch (\InvalidArgumentException $e) {
-            return $this->json(['error' => $e->getMessage()], 404);
+            throw new HttpException(404, $e->getMessage(), $e);
         } catch (\DomainException $e) {
-            return $this->json(['error' => $e->getMessage()], 409);
+            throw new HttpException(409, $e->getMessage(), $e);
         }
 
         return $this->json(['status' => 'ok', 'booking_id' => $booking->getId()], 201);
@@ -64,12 +64,12 @@ final class CabinController extends AbstractController
     {
         $data = json_decode($request->getContent(), true) ?? [];
         if (!array_key_exists('comment', $data)) {
-            return $this->json(['error' => 'comment is required'], 400);
+            throw new HttpException(400, 'comment is required');
         }
 
         $ok = $this->bookingService->updateBookingComment($id, (string)$data['comment']);
         if (!$ok) {
-            return $this->json(['error' => 'Booking not found'], 404);
+            throw new HttpException(404, $e->getMessage(), $e);
         }
 
         return $this->json(['status' => 'ok']);

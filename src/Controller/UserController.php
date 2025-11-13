@@ -10,6 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 final class UserController extends AbstractController
 {
@@ -26,7 +27,7 @@ final class UserController extends AbstractController
         $phone = trim((string)($data['phone'] ?? ''));
 
         if ($name === '' || $phone === '') {
-            return $this->json(['error' => 'name and phone are required'], 400);
+            throw new HttpException(400, 'phone and cabin_id are required');
         }
 
         $user = (new User())
