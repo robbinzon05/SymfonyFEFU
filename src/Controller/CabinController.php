@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\services\ServicesCSV;
-use Carbon\Carbon;
+use App\Service\BookingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,100 +13,50 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 final class CabinController extends AbstractController
 {
-    private ServicesCSV $csv;
-
-    public function __construct(ServicesCSV $csv)
-    {
-        $this->csv = $csv;
-    }
+    public function __construct(
+        private readonly BookingService $bookingService,
+    ) {}
 
     #[Route('/cabins', name: 'cabins_list', methods: ['GET'])]
     public function list(Request $request): JsonResponse
     {
         $amenitiesCsv = (string) $request->query->get('amenities', '');
-        $requiredAmenities = array_filter(array_map('trim', explode(',', $amenitiesCsv)));
-
+        $requiredAmenities = array_values(array_filter(array_map('trim', explode(',', $amenitiesCsv))));
         $minBeds = $request->query->getInt('beds', 0);
-        $seasideRow = $request->query->getInt('row', 0);
+        $row     = $request->query->getInt('row', 0);
 
-        $cabins = $this->csv->loadCabins();
-        $result = [];
+        $cabins = $this->bookingService->listFreeCabins($requiredAmenities, $minBeds, $row);
 
-        foreach ($cabins as $cabin) {
-            if ((int) $cabin['is_free'] !== 1) {
-                continue;
-            }
-            if ($minBeds > 0 && (int) $cabin['beds'] < $minBeds) {
-                continue;
-            }
-            if ($seasideRow > 0 && (int) $cabin['row'] !== $seasideRow) {
-                continue;
-            }
-
-            if ($requiredAmenities) {
-                $cabinAmenities = array_filter(array_map('trim', explode(',', (string) $cabin['amenities'])));
-                $ok = true;
-                foreach ($requiredAmenities as $a) {
-                    if (!in_array($a, $cabinAmenities, true)) {
-                        $ok = false;
-                        break;
-                    }
-                }
-                if (!$ok) {
-                    continue;
-                }
-            }
-
-            $result[] = $cabin;
-        }
-
-        return $this->json(array_values($result));
+        return $this->json(array_map(static fn($cabin) => [
+            'id'        => $cabin->getId(),
+            'beds'      => $cabin->getBeds(),
+            'row'       => $cabin->getRow(),
+            'amenities' => $cabin->getAmenities(),
+            'is_free'   => $cabin->isFree(),
+        ], $cabins));
     }
 
     #[Route('/bookings', name: 'booking_create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
         $data    = json_decode($request->getContent(), true) ?? [];
-        $phone   = (string) ($data['phone'] ?? '');
-        $cabinId = (int) ($data['cabin_id'] ?? 0);
-        $comment = (string) ($data['comment'] ?? '');
+        $phone   = (string)($data['phone'] ?? '');
+        $cabinId = (int)($data['cabin_id'] ?? 0);
+        $comment = (string)($data['comment'] ?? '');
 
         if ($phone === '' || $cabinId === 0) {
-            return $this->json(['error' => 'phone and cabin_id are required'], 400);
+            throw new HttpException(400, 'phone and cabin_id are required');
         }
 
-        $cabins = $this->csv->loadCabins();
-        $foundIndex = null;
-
-        foreach ($cabins as $i => $cabin) {
-            if ((int) $cabin['id'] === $cabinId) {
-                $foundIndex = $i;
-                break;
-            }
+        try {
+            $booking = $this->bookingService->createBooking($phone, $cabinId, $comment);
+        } catch (\InvalidArgumentException $e) {
+            throw new HttpException(404, $e->getMessage(), $e);
+        } catch (\DomainException $e) {
+            throw new HttpException(409, $e->getMessage(), $e);
         }
 
-        if ($foundIndex === null) {
-            throw new HttpException(404, 'Cabin not found');
-        }
-        if ((int) $cabins[$foundIndex]['is_free'] !== 1) {
-            return $this->json(['error' => 'Cabin already booked'], 409);
-        }
-
-        $bookings = $this->csv->loadBookings();
-        $newId = $this->csv->nextId($bookings);
-        $bookings[] = [
-            'id'         => $newId,
-            'phone'      => $phone,
-            'cabin_id'   => $cabinId,
-            'comment'    => $comment,
-            'created_at' => Carbon::now()->toIso8601String(),
-        ];
-        $this->csv->saveBookings($bookings);
-
-        $cabins[$foundIndex]['is_free'] = 0;
-        $this->csv->saveCabins($cabins);
-
-        return $this->json(['status' => 'ok', 'booking_id' => $newId], 201);
+        return $this->json(['status' => 'ok', 'booking_id' => $booking->getId()], 201);
     }
 
     #[Route('/bookings/{id<\d+>}', name: 'booking_update', methods: ['PUT'])]
@@ -115,27 +64,14 @@ final class CabinController extends AbstractController
     {
         $data = json_decode($request->getContent(), true) ?? [];
         if (!array_key_exists('comment', $data)) {
-            return $this->json(['error' => 'comment is required'], 400);
-        }
-        $newComment = (string) $data['comment'];
-
-        $bookings = $this->csv->loadBookings();
-        $updated = false;
-
-        foreach ($bookings as &$booking) {
-            if ((int) $booking['id'] === $id) {
-                $booking['comment'] = $newComment;
-                $updated = true;
-                break;
-            }
-        }
-        unset($booking);
-
-        if (!$updated) {
-            return $this->json(['error' => 'Booking not found'], 404);
+            throw new HttpException(400, 'comment is required');
         }
 
-        $this->csv->saveBookings($bookings);
+        $ok = $this->bookingService->updateBookingComment($id, (string)$data['comment']);
+        if (!$ok) {
+            throw new HttpException(404, $e->getMessage(), $e);
+        }
+
         return $this->json(['status' => 'ok']);
     }
 }

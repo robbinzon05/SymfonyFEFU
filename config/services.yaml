@@ -12,8 +12,3 @@ services:
       - '../src/DependencyInjection/'
       - '../src/Entity/'
       - '../src/Kernel.php'
-
-  App\services\ServicesCSV:
-    arguments:
-      $cabinsFile: '%kernel.project_dir%/src/services/data/cabins.csv'
-      $bookingsFile: '%kernel.project_dir%/src/services/data/bookings.csv'
