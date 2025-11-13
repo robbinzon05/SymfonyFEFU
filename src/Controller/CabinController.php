@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Service\BookingService;
+use DomainException;
+use InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\Routing\Annotation\Route;
 
 final class CabinController extends AbstractController
 {
@@ -28,7 +30,7 @@ final class CabinController extends AbstractController
 
         $cabins = $this->bookingService->listFreeCabins($requiredAmenities, $minBeds, $row);
 
-        return $this->json(array_map(static fn($cabin) => [
+        return $this->json(array_map(static fn ($cabin) => [
             'id'        => $cabin->getId(),
             'beds'      => $cabin->getBeds(),
             'row'       => $cabin->getRow(),
@@ -51,9 +53,9 @@ final class CabinController extends AbstractController
 
         try {
             $booking = $this->bookingService->createBooking($phone, $cabinId, $comment);
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             throw new HttpException(404, $e->getMessage(), $e);
-        } catch (\DomainException $e) {
+        } catch (DomainException $e) {
             throw new HttpException(409, $e->getMessage(), $e);
         }
 

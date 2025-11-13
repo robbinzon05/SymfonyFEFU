@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\BookingService;
 use Doctrine\ORM\EntityManagerInterface;
+use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -49,7 +52,7 @@ final class BookingController extends AbstractController
 
         try {
             $booking = $this->service->create($user, $cabinId, $comment);
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             throw new HttpException(409, $e->getMessage(), $e);
         }
 

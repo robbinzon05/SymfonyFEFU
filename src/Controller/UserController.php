@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\User;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\Routing\Annotation\Route;
+use Throwable;
 
 final class UserController extends AbstractController
 {
@@ -19,7 +21,7 @@ final class UserController extends AbstractController
     {
         try {
             $data = $request->toArray();
-        } catch (\Throwable) {
+        } catch (Throwable) {
             $data = $request->request->all();
         }
 
@@ -33,7 +35,7 @@ final class UserController extends AbstractController
         $user = (new User())
             ->setName($name)
             ->setPhone($phone)
-            ->setCreatedAt(new \DateTimeImmutable());
+            ->setCreatedAt(new DateTimeImmutable());
 
         $em->persist($user);
         $em->flush();
