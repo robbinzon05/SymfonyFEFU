@@ -12,11 +12,9 @@ final class ServicesCSV
 
     public function __construct(string $rootDir)
     {
-        $base = $rootDir . '/src/services/data';
-        $this->cabinsFile   = $base . '/cabins.csv';
-        $this->bookingsFile = $base . '/bookings.csv';
+        $this->cabinsFile = $cabinsFile;
+        $this->bookingsFile = $bookingsFile;
     }
-
 
     /** @return array<int,array<string,mixed>> */
     public function loadCabins(): array

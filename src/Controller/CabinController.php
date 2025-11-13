@@ -10,6 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 final class CabinController extends AbstractController
 {
@@ -86,7 +87,7 @@ final class CabinController extends AbstractController
         }
 
         if ($foundIndex === null) {
-            return $this->json(['error' => 'Cabin not found'], 404);
+            throw new HttpException(404, 'Cabin not found');
         }
         if ((int) $cabins[$foundIndex]['is_free'] !== 1) {
             return $this->json(['error' => 'Cabin already booked'], 409);

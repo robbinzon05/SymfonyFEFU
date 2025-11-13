@@ -15,4 +15,5 @@ services:
 
   App\services\ServicesCSV:
     arguments:
-      $rootDir: '%kernel.project_dir%'
+      $cabinsFile: '%kernel.project_dir%/src/services/data/cabins.csv'
+      $bookingsFile: '%kernel.project_dir%/src/services/data/bookings.csv'
