@@ -7,6 +7,7 @@ namespace App\Tests\Functional;
 use App\Entity\User;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Override;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -16,7 +17,7 @@ final class AuthApiTest extends WebTestCase
     private EntityManagerInterface $em;
     private UserPasswordHasherInterface $passwordHasher;
 
-    #[\Override]
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
