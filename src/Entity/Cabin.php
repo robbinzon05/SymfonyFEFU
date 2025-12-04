@@ -130,12 +130,16 @@ class Cabin
     public function removeBooking(Booking $booking): static
     {
         if ($this->bookings->removeElement($booking)) {
-            // set the owning side to null (unless already changed)
             if ($booking->getCabin() === $this) {
                 $booking->setCabin(null);
             }
         }
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        return sprintf('Cabin #%d (%d beds)', $this->getId(), $this->getBeds());
     }
 }

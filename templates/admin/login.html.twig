@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Вход в админ-панель{% endblock %}
+
+{% block body %}
+    <div style="max-width: 400px; margin: 3rem auto;">
+        <h1>Вход в админ-панель</h1>
+
+        {% if error %}
+            <div style="color: #b00020; margin-bottom: 1rem;">
+                {{ error.messageKey|trans(error.messageData, 'security') }}
+            </div>
+        {% endif %}
+
+        <form method="post" action="{{ path('admin_login') }}">
+            <div style="margin-bottom: 1rem;">
+                <label for="phone">Телефон</label><br>
+                <input
+                    type="text"
+                    id="phone"
+                    name="_username"
+                    value="{{ last_username }}"
+                    required
+                    autofocus
+                    style="width: 100%; padding: 0.5rem;"
+                >
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <label for="password">Пароль</label><br>
+                <input
+                    type="password"
+                    id="password"
+                    name="_password"
+                    required
+                    style="width: 100%; padding: 0.5rem;"
+                >
+            </div>
+
+            <button type="submit" style="padding: 0.5rem 1rem;">Войти</button>
+        </form>
+    </div>
+{% endblock %}
