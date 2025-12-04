@@ -16,6 +16,9 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\DateTimeFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use Override;
 
+/**
+ * @extends AbstractCrudController<\App\Entity\Booking>
+ */
 final class BookingCrudController extends AbstractCrudController
 {
     #[Override]

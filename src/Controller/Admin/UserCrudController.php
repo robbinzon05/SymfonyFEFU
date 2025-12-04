@@ -16,6 +16,9 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\DateTimeFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
 use Override;
 
+/**
+ * @extends AbstractCrudController<\App\Entity\User>
+ */
 final class UserCrudController extends AbstractCrudController
 {
     #[Override]

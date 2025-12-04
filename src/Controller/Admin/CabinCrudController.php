@@ -16,6 +16,9 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\BooleanFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\NumericFilter;
 use Override;
 
+/**
+ * @extends AbstractCrudController<\App\Entity\Cabin>
+ */
 final class CabinCrudController extends AbstractCrudController
 {
     #[Override]

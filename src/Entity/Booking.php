@@ -105,6 +105,17 @@ class Booking
 
     public function __toString(): string
     {
-        return $this->name ?: $this->phone;
+        $userLabel = $this->owner?->getName()
+            ?? $this->owner?->getPhone()
+            ?? 'Unknown user';
+
+        $cabinId = $this->cabin?->getId();
+        $cabinLabel = $cabinId !== null
+            ? sprintf('Cabin #%d', $cabinId)
+            : 'No cabin';
+
+        $bookingId = $this->id ?? 0;
+
+        return sprintf('Booking #%d: %s, %s', $bookingId, $userLabel, $cabinLabel);
     }
 }
