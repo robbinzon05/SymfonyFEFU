@@ -11,12 +11,13 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use Override;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 final class DashboardController extends AbstractDashboardController
 {
-    #[\Override]
+    #[Override]
     #[Route('/admin', name: 'admin')]
     public function index(): Response
     {
@@ -30,14 +31,14 @@ final class DashboardController extends AbstractDashboardController
         return $this->redirect($url);
     }
 
-    #[\Override]
+    #[Override]
     public function configureDashboard(): Dashboard
     {
         return Dashboard::new()
             ->setTitle('Cabin Booking Admin');
     }
 
-    #[\Override]
+    #[Override]
     public function configureMenuItems(): iterable
     {
         yield MenuItem::linkToDashboard('Panel', 'fa fa-home');

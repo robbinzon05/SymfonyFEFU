@@ -6,6 +6,7 @@ namespace App\Command;
 
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Override;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -26,7 +27,7 @@ final class CreateAdminUserCommand extends Command
         parent::__construct();
     }
 
-    #[\Override]
+    #[Override]
     protected function configure(): void
     {
         $this
@@ -35,7 +36,7 @@ final class CreateAdminUserCommand extends Command
             ->addArgument('name', InputArgument::OPTIONAL, 'Name', 'Admin');
     }
 
-    #[\Override]
+    #[Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $phone = (string) $input->getArgument('phone');

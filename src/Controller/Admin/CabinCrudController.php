@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\Cabin;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
@@ -16,16 +14,17 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\BooleanFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\NumericFilter;
+use Override;
 
 final class CabinCrudController extends AbstractCrudController
 {
-    #[\Override]
+    #[Override]
     public static function getEntityFqcn(): string
     {
         return Cabin::class;
     }
 
-    #[\Override]
+    #[Override]
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
@@ -35,7 +34,7 @@ final class CabinCrudController extends AbstractCrudController
             ->setDefaultSort(['row' => 'ASC', 'id' => 'ASC']);
     }
 
-    #[\Override]
+    #[Override]
     public function configureFilters(Filters $filters): Filters
     {
         return $filters
@@ -44,7 +43,7 @@ final class CabinCrudController extends AbstractCrudController
             ->add(BooleanFilter::new('isFree'));
     }
 
-    #[\Override]
+    #[Override]
     public function configureFields(string $pageName): iterable
     {
         yield IdField::new('id')->hideOnForm();

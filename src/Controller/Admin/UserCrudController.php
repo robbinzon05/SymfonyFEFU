@@ -14,16 +14,17 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\DateTimeFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
+use Override;
 
 final class UserCrudController extends AbstractCrudController
 {
-    #[\Override]
+    #[Override]
     public static function getEntityFqcn(): string
     {
         return User::class;
     }
 
-    #[\Override]
+    #[Override]
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
@@ -33,7 +34,7 @@ final class UserCrudController extends AbstractCrudController
             ->setDefaultSort(['createdAt' => 'DESC']);
     }
 
-    #[\Override]
+    #[Override]
     public function configureFilters(Filters $filters): Filters
     {
         return $filters
@@ -42,7 +43,7 @@ final class UserCrudController extends AbstractCrudController
             ->add(DateTimeFilter::new('createdAt', 'Date of registration'));
     }
 
-    #[\Override]
+    #[Override]
     public function configureFields(string $pageName): iterable
     {
         yield IdField::new('id')->hideOnForm();
