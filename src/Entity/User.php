@@ -190,4 +190,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    public function __toString(): string
+    {
+        if ($this->name !== null && $this->name !== '') {
+            return $this->name;
+        }
+
+        if ($this->phone !== null && $this->phone !== '') {
+            return $this->phone;
+        }
+
+        return 'User #' . ($this->id ?? 'N/A');
+    }
 }

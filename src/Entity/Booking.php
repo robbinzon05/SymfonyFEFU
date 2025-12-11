@@ -45,6 +45,11 @@ class Booking
     #[ORM\Column]
     private ?DateTimeImmutable $createdAt = null;
 
+    public function __construct()
+    {
+        $this->createdAt = new DateTimeImmutable();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -96,5 +101,21 @@ class Booking
         $this->createdAt = $createdAt;
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        $userLabel = $this->owner?->getName()
+            ?? $this->owner?->getPhone()
+            ?? 'Unknown user';
+
+        $cabinId = $this->cabin?->getId();
+        $cabinLabel = $cabinId !== null
+            ? sprintf('Cabin #%d', $cabinId)
+            : 'No cabin';
+
+        $bookingId = $this->id ?? 0;
+
+        return sprintf('Booking #%d: %s, %s', $bookingId, $userLabel, $cabinLabel);
     }
 }

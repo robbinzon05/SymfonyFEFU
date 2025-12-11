@@ -13,6 +13,18 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
 
+        admin:
+            pattern: ^/admin
+            provider: app_user_provider
+            lazy: true
+            form_login:
+                login_path: admin_login
+                check_path: admin_login
+                default_target_path: admin
+            logout:
+                path: admin_logout
+                target: admin_login
+
         main:
             pattern: ^/
             lazy: true
@@ -25,10 +37,13 @@ security:
         - { path: ^/api/docs, roles: PUBLIC_ACCESS }
         - { path: ^/api/docs\.json, roles: PUBLIC_ACCESS }
         - { path: ^/api/docs\.jsonopenapi, roles: PUBLIC_ACCESS }
-        
+
+        - { path: ^/admin/login$, roles: PUBLIC_ACCESS }
+        - { path: ^/admin, roles: ROLE_ADMIN }
+
         - { path: ^/login$, roles: PUBLIC_ACCESS, methods: [POST] }
         - { path: ^/users$, roles: PUBLIC_ACCESS, methods: [POST] }
-        
+
         - { path: ^/, roles: ROLE_USER }
 
 when@test:
