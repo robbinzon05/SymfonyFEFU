@@ -9,11 +9,14 @@ use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Override;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[ORM\HasLifecycleCallbacks]
-class User
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -22,6 +25,15 @@ class User
 
     #[ORM\Column(length: 32)]
     private ?string $phone = null;
+
+    #[ORM\Column(type: 'json')]
+    private array $roles = [];
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $password = null;
+
+    #[ORM\Column(length: 64, nullable: true)]
+    private ?string $apiToken = null;
 
     #[ORM\Column(length: 120, nullable: true)]
     private ?string $name = null;
@@ -80,6 +92,67 @@ class User
 
         return $this;
     }
+    #[Override]
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->phone;
+    }
+
+    /**
+     * @return string[]
+     */
+    #[Override]
+    public function getRoles(): array
+    {
+        $roles = $this->roles;
+
+        if (!in_array('ROLE_USER', $roles, true)) {
+            $roles[] = 'ROLE_USER';
+        }
+
+        return array_unique($roles);
+    }
+
+    /**
+     * @param string[] $roles
+     */
+    public function setRoles(array $roles): static
+    {
+        $this->roles = $roles;
+
+        return $this;
+    }
+
+    #[Override]
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(string $password): static
+    {
+        $this->password = $password;
+
+        return $this;
+    }
+
+    public function getApiToken(): ?string
+    {
+        return $this->apiToken;
+    }
+
+    public function setApiToken(?string $apiToken): static
+    {
+        $this->apiToken = $apiToken;
+
+        return $this;
+    }
+
+    #[Override]
+    public function eraseCredentials(): void
+    {
+    }
+
 
     #[ORM\PrePersist]
     public function setCreatedAtValue(): void
@@ -88,7 +161,6 @@ class User
             $this->createdAt = new DateTimeImmutable();
         }
     }
-
 
     /**
      * @return Collection<int, Booking>
@@ -111,7 +183,6 @@ class User
     public function removeBooking(Booking $booking): static
     {
         if ($this->bookings->removeElement($booking)) {
-            // set the owning side to null (unless already changed)
             if ($booking->getOwner() === $this) {
                 $booking->setOwner(null);
             }

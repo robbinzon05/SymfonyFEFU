@@ -12,7 +12,7 @@ use App\Repository\CabinRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use DomainException;
-use InvalidArgumentException;
+use RuntimeException;
 
 final class BookingService
 {
@@ -57,7 +57,7 @@ final class BookingService
         $cabin = $this->cabins->find($cabinId);
 
         if (!$cabin) {
-            throw new InvalidArgumentException('Cabin not found');
+            throw new RuntimeException('Cabin not found');
         }
 
         if (!$cabin->isFree()) {
