@@ -22,8 +22,13 @@ security:
                 token_handler: App\Security\UserAccessTokenHandler
 
     access_control:
+        - { path: ^/api/docs, roles: PUBLIC_ACCESS }
+        - { path: ^/api/docs\.json, roles: PUBLIC_ACCESS }
+        - { path: ^/api/docs\.jsonopenapi, roles: PUBLIC_ACCESS }
+        
         - { path: ^/login$, roles: PUBLIC_ACCESS, methods: [POST] }
         - { path: ^/users$, roles: PUBLIC_ACCESS, methods: [POST] }
+        
         - { path: ^/, roles: ROLE_USER }
 
 when@test:

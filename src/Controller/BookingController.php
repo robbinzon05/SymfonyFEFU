@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\BookingService;
 use Doctrine\ORM\EntityManagerInterface;
+use OpenApi\Attributes as OA;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -15,6 +16,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Attribute\Route;
 
+#[OA\Tag(name: 'Bookings')]
 #[Route('/bookings')]
 final class BookingController extends AbstractController
 {
@@ -25,6 +27,47 @@ final class BookingController extends AbstractController
     ) {
     }
 
+    #[OA\Post(
+        path: '/bookings',
+        summary: 'Create booking',
+        description: 'Creates a booking for a cabin. If user with provided phone does not exist, it will be created.',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['phone', 'cabin_id'],
+                properties: [
+                    new OA\Property(property: 'phone', type: 'string', example: '+79990000001'),
+                    new OA\Property(property: 'name', type: 'string', example: 'Guest'),
+                    new OA\Property(property: 'cabin_id', type: 'integer', example: 1),
+                    new OA\Property(property: 'comment', type: 'string', example: 'Please prepare towels'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Booking created',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'id', type: 'integer', example: 10),
+                        new OA\Property(property: 'user_id', type: 'integer', example: 3),
+                        new OA\Property(property: 'cabin_id', type: 'integer', example: 1),
+                        new OA\Property(property: 'comment', type: 'string', example: 'Please prepare towels'),
+                        new OA\Property(
+                            property: 'created_at',
+                            type: 'string',
+                            format: 'date-time',
+                            example: '2025-12-03T14:35:04+00:00'
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(response: 400, description: 'phone and cabin_id are required'),
+            new OA\Response(response: 401, description: 'Unauthorized'),
+            new OA\Response(response: 409, description: 'Cabin not free or not found'),
+        ]
+    )]
     #[Route('', name: 'booking_create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {

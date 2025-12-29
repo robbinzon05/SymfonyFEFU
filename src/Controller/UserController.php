@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Entity\User;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,8 +16,28 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Throwable;
 
+#[OA\Tag(name: 'Users')]
 final class UserController extends AbstractController
 {
+    #[OA\Post(
+        path: '/users',
+        summary: 'Create user',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['phone', 'password'],
+                properties: [
+                    new OA\Property(property: 'phone', type: 'string', example: '+79990000002'),
+                    new OA\Property(property: 'name', type: 'string', example: 'Ivan'),
+                    new OA\Property(property: 'password', type: 'string', example: 'secret123'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'User created'),
+            new OA\Response(response: 400, description: 'Validation error'),
+        ]
+    )]
     #[Route('/users', name: 'user_create', methods: ['POST'])]
     public function create(
         Request $request,
