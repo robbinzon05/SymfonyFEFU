@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\User;
-use OpenApi\Attributes as OA;
 use Doctrine\ORM\EntityManagerInterface;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -90,7 +90,7 @@ final class AuthController extends AbstractController
             ],
         ]);
     }
-    
+
     #[OA\Post(
         path: '/logout',
         summary: 'Logout (invalidate token)',
