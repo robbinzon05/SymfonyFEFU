@@ -54,7 +54,12 @@ final class BookingController extends AbstractController
                         new OA\Property(property: 'user_id', type: 'integer', example: 3),
                         new OA\Property(property: 'cabin_id', type: 'integer', example: 1),
                         new OA\Property(property: 'comment', type: 'string', example: 'Please prepare towels'),
-                        new OA\Property(property: 'created_at', type: 'string', format: 'date-time', example: '2025-12-03T14:35:04+00:00'),
+                        new OA\Property(
+                            property: 'created_at',
+                            type: 'string',
+                            format: 'date-time',
+                            example: '2025-12-03T14:35:04+00:00'
+                        ),
                     ]
                 )
             ),
